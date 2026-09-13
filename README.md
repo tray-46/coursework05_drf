@@ -24,12 +24,12 @@ To clone the repository use the following links:
 
 * with HTTPS:
 ```
-
+https://github.com/tray-46/coursework05_drf.git
 ```
 
 * with SSH:  
 ```
-
+git@github.com:tray-46/coursework05_drf.git
 ```
 
 Install dependencies.
