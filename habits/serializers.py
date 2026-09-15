@@ -5,6 +5,31 @@ from habits.models import Action, Location, Reward, Habit
 from users.serializers import UserSerializer
 
 
+class FlexibleNestedField(serializers.RelatedField):
+
+    def __init__(self, model, serializer_class, **kwargs):
+        self.model = model
+        self.serializer_class = serializer_class
+        super().__init__(**kwargs)
+
+    def to_representation(self, instance):
+        return self.serializer_class(instance, context=self.context).data
+
+    def to_internal_value(self, data):
+        if isinstance(data, (int, str)) or getattr(data, "isdigit", lambda: False)():
+            try:
+                return self.model.objects.get(pk=data)
+            except self.model.DoesNotExist:
+                raise serializers.ValidationError(f"{self.model.__name__} with pk {data} does not exist.")
+
+        if isinstance(data, dict):
+            serializer = self.serializer_class(data=data, context=self.context)
+            serializer.is_valid(raise_exception=True)
+            return serializer.save()
+
+        raise serializers.ValidationError(f"Invalid input. Expected an id or dictionary.")
+
+
 class ActionSerializer(serializers.ModelSerializer):
     """
     Serializer for Action model
@@ -55,14 +80,15 @@ class HabitSerializer(serializers.ModelSerializer):
     Serializer for Habit model
     """
     user = UserSerializer(read_only=True)
-    action = ActionSerializer()
-    location = LocationSerializer()
-    reward = RewardSerializer(required=False, allow_null=True)
+    action = FlexibleNestedField(model=Action, serializer_class=ActionSerializer, queryset=Action.objects.all())
+    location = FlexibleNestedField(model=Location, serializer_class=LocationSerializer, queryset=Location.objects.all())
+    reward = FlexibleNestedField(model=Reward, serializer_class=RewardSerializer, queryset=Reward.objects.all(),
+                                 required=False, allow_null=True)
 
     class Meta:
         model = Habit
         fields = ("id", "user", "action", "location", "duration", "reminder_time", "period", "related_habit", "reward",
-                  "is_pleasant","is_public",)
+                  "is_pleasant", "is_public",)
         extra_kwargs = {
             "related_habit": {
                 "error_messages": {
@@ -72,48 +98,18 @@ class HabitSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        action_data = validated_data.pop("action")
-        action_serializer = ActionSerializer(data=action_data)
-        action_serializer.is_valid(raise_exception=True)
-        action = action_serializer.save()
-
-        location_data = validated_data.pop("location")
-        location_serializer = LocationSerializer(data=location_data)
-        location_serializer.is_valid(raise_exception=True)
-        location = location_serializer.save()
-
-        reward_data = validated_data.pop("reward")
-        reward = None
-        if reward_data:
-            reward_serializer = RewardSerializer(data=reward_data)
-            reward_serializer.is_valid(raise_exception=True)
-            reward = reward_serializer.save()
+        action = validated_data.pop("action", None)
+        location = validated_data.pop("location", None)
+        reward = validated_data.pop("reward", None)
 
         habit = Habit.objects.create(**validated_data, action=action, location=location, reward=reward)
         return habit
 
     def update(self, instance, validated_data):
         with transaction.atomic():
-            action_data = validated_data.pop("action", None)
-            action = None
-            if action_data:
-                action_serializer = ActionSerializer(data=action_data)
-                action_serializer.is_valid(raise_exception=True)
-                action = action_serializer.save()
-
-            location_data = validated_data.pop("location", None)
-            location = None
-            if location_data:
-                location_serializer = LocationSerializer(data=location_data)
-                location_serializer.is_valid(raise_exception=True)
-                location = location_serializer.save()
-
-            reward_data = validated_data.pop("reward", None)
-            reward = None
-            if reward_data:
-                reward_serializer = RewardSerializer(data=reward_data)
-                reward_serializer.is_valid(raise_exception=True)
-                reward = reward_serializer.save()
+            action = validated_data.pop("action", None)
+            location = validated_data.pop("location", None)
+            reward = validated_data.pop("reward", None)
 
             instance.action = action if action else instance.action
             instance.location = location if location else instance.location
@@ -126,8 +122,6 @@ class HabitSerializer(serializers.ModelSerializer):
             instance.is_public = validated_data.get("is_public", instance.is_public)
             instance.save()
         return instance
-
-
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -156,7 +150,6 @@ class HabitSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("related_habit must be a pleasant habit")
         return value
 
-
     def validate(self, data):
         """Cross field validation"""
         is_pleasant = data.get("is_pleasant")
@@ -174,4 +167,3 @@ class HabitSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("habit must have related_habit or reward.")
 
         return data
-
