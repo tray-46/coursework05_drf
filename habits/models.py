@@ -60,13 +60,14 @@ class Habit(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="habits", verbose_name="Пользователь")
     action = models.ForeignKey(Action, on_delete=models.RESTRICT, related_name="habits", verbose_name="Действие")
     location = models.ForeignKey(Location, on_delete=models.RESTRICT, related_name="habits", verbose_name="Место")
-    duration = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(120)],
-                                                verbose_name="Время на выполнение (в секундах)")
+    duration = models.SmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(120)],
+                                        verbose_name="Время на выполнение (в секундах)")
     reminder_time = models.TimeField(default=timezone.now, verbose_name="Время")
-    period = models.PositiveSmallIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(7)],
-                                              verbose_name="Периодичность")
+    period = models.SmallIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(7)],
+                                      verbose_name="Периодичность")
     related_habit = models.ForeignKey("self", on_delete=models.SET_NULL, null=True, blank=True,
-                                      limit_choices_to={"is_pleasant": True}, verbose_name="Связаная привычка")
+                                      limit_choices_to={"is_pleasant": True},
+                                      error_messages={"invalid": "Selected habit is invalid. Please select pleasant habit."} , verbose_name="Связаная привычка")
     reward = models.ForeignKey(Reward, on_delete=models.RESTRICT, null=True, blank=True, related_name="habits",
                                verbose_name="Вознаграждение")
     is_pleasant = models.BooleanField(default=False, verbose_name="Признак приятной привычки")
@@ -77,26 +78,18 @@ class Habit(models.Model):
         verbose_name_plural = "Привычки"
         constraints = [
             models.CheckConstraint(
-                condition=(
-                        (~models.Q(is_pleasant=True) | (models.Q(related_habit__isnull=True) & models.Q(reward__isnull=True))) |
-                        models.Q(related_habit__isnull=False, reward__isnull=True) |
-                        models.Q(related_habit__isnull=True, reward__isnull=False)
-                ),
-                name="pleasant_habit_or_only_one_reward.",
-                violation_error_message="Habit can be pleasant or have only related habit or reward."
+                condition=models.Q(is_pleasant=True, related_habit__isnull=True, reward__isnull=True) |
+                          models.Q(is_pleasant=False, related_habit__isnull=False, reward__isnull=True) |
+                          models.Q(is_pleasant=False, related_habit__isnull=True, reward__isnull=False),
+                name="pleasant_habit_or_related_habit_or_reward",
+                violation_error_message="Pleasant habit can't have either relate_habit or reward. "
+                                        "Useful habit can have either related habit or reward"
             ),
             models.CheckConstraint(
                 condition=models.Q(duration__gte=1) & models.Q(duration__lte=120),
                 name="duration_range_1_to_120",
                 violation_error_message="Duration cand be more than 120 seconds."
             ),
-            # models.CheckConstraint(
-            #     condition=(
-            #             ~models.Q(is_pleasant=True) | (models.Q(related_habit__isnull=True) & models.Q(reward__isnull=True))
-            #     ),
-            #     name="no_reward_for_pleasant_habits",
-            #     violation_error_message="Pleasant habit can't have reward or related habit."
-            # ),
             models.CheckConstraint(
                 condition=models.Q(period__gte=1) & models.Q(period__lte=7),
                 name="period_range_1_to_7",
@@ -111,8 +104,10 @@ class Habit(models.Model):
         super().clean()
 
         if self.related_habit:
-            if self.related_habit.is_pleasant:
+            if not self.related_habit.is_pleasant:
                 raise ValidationError({"related_habit": "related_habit can be only pleasant habit"})
+
+
 
     def save(self, *args, **kwargs):
         self.full_clean()
