@@ -3,6 +3,7 @@ from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView,
 from rest_framework.permissions import IsAuthenticated
 
 from habits.models import Habit
+from habits.permissions import IsHabitOwner
 from habits.serializers import HabitSerializer
 
 
@@ -16,24 +17,28 @@ class HabitCreateAPIView(CreateAPIView):
 
 
 class HabitListAPIView(ListAPIView):
-    queryset = Habit.objects.all()
     serializer_class = HabitSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsHabitOwner]
+
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return Habit.objects.filter(user=self.request.user).order_by("id")
+        return Habit.objects.none()
 
 
 class HabitRetrieveAPIView(RetrieveAPIView):
     queryset = Habit.objects.all()
     serializer_class = HabitSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsHabitOwner]
 
 
 class HabitUpdateAPIView(UpdateAPIView):
     queryset = Habit.objects.all()
     serializer_class = HabitSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsHabitOwner]
 
 
 class HabitDestroyAPIView(DestroyAPIView):
     queryset = Habit.objects.all()
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsHabitOwner]
 
