@@ -99,7 +99,7 @@ class Habit(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.action.name} {self.execution_time.strftime('%H:%M')} {self.location.name}"
+        return f"{self.action.name} {self.execution_time.astimezone().strftime('%H:%M')} {self.location.name}"
 
     def clean(self):
         super().clean()
