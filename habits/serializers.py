@@ -187,7 +187,7 @@ class PublicHabitSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Habit
-        fields = ("action", "location", "duration", "reminder_time", "period", "related_habit", "reward",
+        fields = ("action", "location", "duration", "execution_time", "period", "related_habit", "reward",
                   "is_pleasant",)
 
     def to_representation(self, instance):
