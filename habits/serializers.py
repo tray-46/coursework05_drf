@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.utils import timezone
 from rest_framework import serializers
 
 from habits.models import Action, Location, Reward, Habit
@@ -84,11 +85,12 @@ class HabitSerializer(serializers.ModelSerializer):
     location = FlexibleNestedField(model=Location, serializer_class=LocationSerializer, queryset=Location.objects.all())
     reward = FlexibleNestedField(model=Reward, serializer_class=RewardSerializer, queryset=Reward.objects.all(),
                                  required=False, allow_null=True)
+    next_execution_at = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = Habit
-        fields = ("id", "user", "action", "location", "duration", "reminder_time", "period", "related_habit", "reward",
-                  "is_pleasant", "is_public",)
+        fields = ("id", "user", "action", "location", "duration", "execution_time", "period", "related_habit", "reward",
+                  "is_pleasant", "is_public", "is_disabled", "next_execution_at")
         extra_kwargs = {
             "related_habit": {
                 "error_messages": {
@@ -114,12 +116,14 @@ class HabitSerializer(serializers.ModelSerializer):
             instance.action = action if action else instance.action
             instance.location = location if location else instance.location
             instance.duration = validated_data.get("duration", instance.duration)
-            instance.reminder_time = validated_data.get("reminder_time", instance.reminder_time)
+            instance.execution_time = validated_data.get("execution_time", instance.execution_time)
             instance.period = validated_data.get("period", instance.period)
             instance.related_habit = validated_data.get("related_habit", instance.related_habit)
             instance.reward = reward if reward else instance.reward
             instance.is_pleasant = validated_data.get("is_pleasant", instance.is_pleasant)
             instance.is_public = validated_data.get("is_public", instance.is_public)
+            instance.is_disabled = validated_data.get("is_disabled", instance.is_disabled)
+
             instance.save()
         return instance
 
@@ -131,6 +135,12 @@ class HabitSerializer(serializers.ModelSerializer):
 
         # return {key: value for key, value in representation.items() if value is not None}
         return representation
+
+    def validate_execution_time(self, value):
+        """Check that the execution_time value not in the past"""
+        if value < timezone.now():
+            raise serializers.ValidationError("execution_time cannot be in past")
+        return value
 
     def validate_duration(self, value):
         """Check that the duration value is between 1 and 120"""
