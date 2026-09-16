@@ -13,6 +13,8 @@ import os
 from datetime import timedelta
 
 from pathlib import Path
+
+from celery.schedules import crontab
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -173,4 +175,8 @@ CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
 
 CELERY_BEAT_SCHEDULE = {
+    "habit_notifications": {
+        "task": "habits.tasks.send_habit_notification_task",
+        "schedule": crontab(minute="0"),
+    }
 }
