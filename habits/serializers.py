@@ -129,6 +129,7 @@ class HabitSerializer(serializers.ModelSerializer):
         if instance.related_habit:
             representation["related_habit"] = self.__class__(instance.related_habit).data
 
+        # return {key: value for key, value in representation.items() if value is not None}
         return representation
 
     def validate_duration(self, value):
@@ -167,3 +168,22 @@ class HabitSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("habit must have related_habit or reward.")
 
         return data
+
+
+class PublicHabitSerializer(serializers.ModelSerializer):
+    action = serializers.StringRelatedField(read_only=True)
+    location = serializers.StringRelatedField(read_only=True)
+    reward = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        model = Habit
+        fields = ("action", "location", "duration", "reminder_time", "period", "related_habit", "reward",
+                  "is_pleasant",)
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+
+        if instance.related_habit:
+            representation["related_habit"] = self.__class__(instance.related_habit).data
+
+        return {key: value for key, value in representation.items() if value is not None}

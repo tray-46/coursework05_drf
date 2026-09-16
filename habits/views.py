@@ -1,10 +1,9 @@
-from django.shortcuts import render
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView, DestroyAPIView
 from rest_framework.permissions import IsAuthenticated
 
 from habits.models import Habit
 from habits.permissions import IsHabitOwner
-from habits.serializers import HabitSerializer
+from habits.serializers import HabitSerializer, PublicHabitSerializer
 
 
 # Create your views here.
@@ -26,6 +25,16 @@ class HabitListAPIView(ListAPIView):
         return Habit.objects.none()
 
 
+class PublicHabitListAPIView(ListAPIView):
+    serializer_class = PublicHabitSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return Habit.objects.filter(is_public=True).order_by("id")
+        return Habit.objects.none()
+
+
 class HabitRetrieveAPIView(RetrieveAPIView):
     queryset = Habit.objects.all()
     serializer_class = HabitSerializer
@@ -41,4 +50,3 @@ class HabitUpdateAPIView(UpdateAPIView):
 class HabitDestroyAPIView(DestroyAPIView):
     queryset = Habit.objects.all()
     permission_classes = [IsAuthenticated, IsHabitOwner]
-
