@@ -62,7 +62,7 @@ class Habit(models.Model):
     location = models.ForeignKey(Location, on_delete=models.RESTRICT, related_name="habits", verbose_name="Место")
     duration = models.SmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(120)],
                                         verbose_name="Время на выполнение (в секундах)")
-    reminder_time = models.TimeField(default=timezone.now, verbose_name="Время")
+    execution_time = models.DateTimeField(default=timezone.now, verbose_name="Следующее выполнение")
     period = models.SmallIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(7)],
                                       verbose_name="Периодичность")
     related_habit = models.ForeignKey("self", on_delete=models.SET_NULL, null=True, blank=True,
@@ -72,6 +72,7 @@ class Habit(models.Model):
                                verbose_name="Вознаграждение")
     is_pleasant = models.BooleanField(default=False, verbose_name="Признак приятной привычки")
     is_public = models.BooleanField(default=False, verbose_name="Признак публичной привычки")
+    is_disabled = models.BooleanField(default=False, verbose_name="Отключена")
 
     class Meta:
         verbose_name = "Привычка"
@@ -98,15 +99,17 @@ class Habit(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.action.name} {self.reminder_time.strftime('%H:%M')} {self.location.name}"
+        return f"{self.action.name} {self.execution_time.strftime('%H:%M')} {self.location.name}"
 
     def clean(self):
         super().clean()
 
+        if self.execution_time and self.execution_time < timezone.now():
+            raise ValidationError({"execution_time": "The date cannot be in the past."})
+
         if self.related_habit:
             if not self.related_habit.is_pleasant:
                 raise ValidationError({"related_habit": "related_habit can be only pleasant habit"})
-
 
 
     def save(self, *args, **kwargs):
