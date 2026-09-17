@@ -43,3 +43,12 @@ In console open project directory and execute following command:
 ```
 python manage.py runserver
 ```
+Start your message broker.
+Start Celery worker process.
+```
+celery -A config worker --loglevel=INFO --pool=gevent
+```
+Start Celery beat processes:
+```
+celery -A config beat --loglevel=INFO
+```
