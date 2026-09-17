@@ -1,12 +1,15 @@
 from datetime import timedelta
+from typing import Any
+from unittest import TestCase
 from zoneinfo import ZoneInfo
 
-from config.settings import TIME_ZONE
+from django.core.exceptions import ValidationError
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from config.settings import TIME_ZONE
 from habits.models import Action, Habit, Location, Reward
 from users.models import User
 
@@ -86,7 +89,7 @@ class HabitTest(APITestCase):
             "related_habit": None,
             "reward": self.reward.pk,
             "is_pleasant": False,
-            "is_public": True
+            "is_public": True,
         }
 
         response = self.client.post(url, data, format="json")
@@ -119,7 +122,8 @@ class HabitTest(APITestCase):
                     },
                     "duration": self.pleasant_habit_shower.duration,
                     "execution_time": self.pleasant_habit_shower.execution_time.astimezone(
-                        ZoneInfo(TIME_ZONE)).strftime("%Y-%m-%d %H:%M:%S"),
+                        ZoneInfo(TIME_ZONE)
+                    ).strftime("%Y-%m-%d %H:%M:%S"),
                     "period": self.pleasant_habit_shower.period,
                     "related_habit": None,
                     "reward": None,
@@ -142,7 +146,8 @@ class HabitTest(APITestCase):
                     },
                     "duration": self.habit_running.duration,
                     "execution_time": self.habit_running.execution_time.astimezone(ZoneInfo(TIME_ZONE)).strftime(
-                        "%Y-%m-%d %H:%M:%S"),
+                        "%Y-%m-%d %H:%M:%S"
+                    ),
                     "period": self.habit_running.period,
                     "related_habit": {
                         "id": self.pleasant_habit_shower.pk,
@@ -159,7 +164,8 @@ class HabitTest(APITestCase):
                         },
                         "duration": self.pleasant_habit_shower.duration,
                         "execution_time": self.pleasant_habit_shower.execution_time.astimezone(
-                            ZoneInfo(TIME_ZONE)).strftime("%Y-%m-%d %H:%M:%S"),
+                            ZoneInfo(TIME_ZONE)
+                        ).strftime("%Y-%m-%d %H:%M:%S"),
                         "period": self.pleasant_habit_shower.period,
                         "related_habit": None,
                         "reward": None,
@@ -187,24 +193,20 @@ class HabitTest(APITestCase):
                     },
                     "duration": self.habit_cleaning.duration,
                     "execution_time": self.habit_cleaning.execution_time.astimezone(ZoneInfo(TIME_ZONE)).strftime(
-                        "%Y-%m-%d %H:%M:%S"),
+                        "%Y-%m-%d %H:%M:%S"
+                    ),
                     "period": self.habit_cleaning.period,
                     "related_habit": None,
                     "reward": {
-                        "name": self.habit_cleaning.reward.name,
+                        "name": self.habit_cleaning.reward.name if self.habit_cleaning.reward else None,
                     },
                     "is_pleasant": self.habit_cleaning.is_pleasant,
                     "is_public": self.habit_cleaning.is_public,
                     "is_disabled": self.habit_cleaning.is_disabled,
                 },
-            ]
+            ],
         }
-        empty_result = {
-            "count": 0,
-            "next": None,
-            "previous": None,
-            "results": []
-        }
+        empty_result: dict[str, Any] = {"count": 0, "next": None, "previous": None, "results": []}
 
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
@@ -237,8 +239,9 @@ class HabitTest(APITestCase):
                 "name": self.pleasant_habit_shower.location.name,
             },
             "duration": self.pleasant_habit_shower.duration,
-            "execution_time": self.pleasant_habit_shower.execution_time.astimezone(
-                ZoneInfo(TIME_ZONE)).strftime("%Y-%m-%d %H:%M:%S"),
+            "execution_time": self.pleasant_habit_shower.execution_time.astimezone(ZoneInfo(TIME_ZONE)).strftime(
+                "%Y-%m-%d %H:%M:%S"
+            ),
             "period": self.pleasant_habit_shower.period,
             "related_habit": None,
             "reward": None,
@@ -294,3 +297,59 @@ class HabitTest(APITestCase):
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Habit.objects.count(), 2)
+
+
+class ModelsTest(TestCase):
+
+    def setUp(self) -> None:
+        dt_now = timezone.now()
+        self.execution_time = dt_now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
+        self.user = User(username="user1", email="user1@habits.com", password="user1")
+        self.action = Action(name="test_action")
+        self.location = Location(name="test_location")
+        self.reward = Reward(name="test_reward")
+        self.habit = Habit(
+            user=self.user,
+            action=self.action,
+            location=self.location,
+            duration=1,
+            execution_time=self.execution_time,
+            period=1,
+            is_pleasant=True,
+        )
+
+    def test_action_str(self) -> None:
+        self.assertEqual(str(self.action), "test_action")
+
+    def test_location_str(self) -> None:
+        self.assertEqual(str(self.location), "test_location")
+
+    def test_reward_str(self) -> None:
+        self.assertEqual(str(self.reward), "test_reward")
+
+    def test_habit_str(self) -> None:
+        self.assertEqual(
+            str(self.habit),
+            f"{self.action.name} {self.execution_time.astimezone().strftime('%H:%M')} {self.location.name}",
+        )
+
+    def test_invalid_execution_time(self) -> None:
+        self.habit.execution_time -= timedelta(days=1)
+
+        with self.assertRaises(ValidationError):
+            self.habit.full_clean()
+
+    def test_invalid_related_habit(self) -> None:
+        related_habit = Habit(
+            user=self.user,
+            action=self.action,
+            location=self.location,
+            duration=1,
+            execution_time=self.execution_time,
+            period=1,
+            is_pleasant=False,
+        )
+        self.habit.related_habit = related_habit
+
+        with self.assertRaises(ValidationError):
+            self.habit.full_clean()
