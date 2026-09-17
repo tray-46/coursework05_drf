@@ -1,6 +1,6 @@
 from typing import Any
 
-from drf_spectacular.utils import extend_schema, OpenApiResponse, PolymorphicProxySerializer
+from drf_spectacular.utils import extend_schema
 from rest_framework.generics import CreateAPIView, DestroyAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request

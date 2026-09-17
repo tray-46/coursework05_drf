@@ -1,6 +1,8 @@
-from drf_spectacular.utils import OpenApiResponse, extend_schema, inline_serializer
-from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView, DestroyAPIView
+from django.db.models import QuerySet
+from drf_spectacular.utils import OpenApiResponse, extend_schema
+from rest_framework.generics import CreateAPIView, DestroyAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.serializers import BaseSerializer
 
 from habits.models import Habit
 from habits.permissions import IsHabitOwner
@@ -12,7 +14,7 @@ class HabitCreateAPIView(CreateAPIView):
     serializer_class = HabitSerializer
     permission_classes = [IsAuthenticated]
 
-    def perform_create(self, serializer):
+    def perform_create(self, serializer: BaseSerializer) -> None:
         serializer.save(user=self.request.user)
 
 
@@ -20,7 +22,7 @@ class HabitListAPIView(ListAPIView):
     serializer_class = HabitSerializer
     permission_classes = [IsAuthenticated, IsHabitOwner]
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[Habit]:
         if self.request.user.is_authenticated:
             return Habit.objects.filter(user=self.request.user).order_by("id")
         return Habit.objects.none()
@@ -30,7 +32,7 @@ class PublicHabitListAPIView(ListAPIView):
     serializer_class = PublicHabitSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[Habit]:
         if self.request.user.is_authenticated:
             return Habit.objects.filter(is_public=True).order_by("id")
         return Habit.objects.none()
@@ -46,6 +48,7 @@ class HabitUpdateAPIView(UpdateAPIView):
     queryset = Habit.objects.all()
     serializer_class = HabitSerializer
     permission_classes = [IsAuthenticated, IsHabitOwner]
+
 
 @extend_schema(
     description="Delete the specifies habit.",

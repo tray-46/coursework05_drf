@@ -6,27 +6,29 @@
 # django.setup()
 import os
 
-import requests
+# import requests
 from datetime import timedelta
 
+from django.db.models import QuerySet
 from django.utils import timezone
 
 from habits.models import Habit
 
-
 TG_BOT_API_KEY = os.environ.get("TG_BOT_API_KEY")
 
 
-def send_telegram_message(chat_id, message):
+def send_telegram_message(chat_id: str, message: str) -> None:
     # params = {"chat_id": chat_id, "text": message}
     # requests.get(f"https://api.telegram.org/bot{TG_BOT_API_KEY}/sendMessage", params=params)
     print(f"telegram message to {chat_id}: {message}")
 
 
-def get_habits_to_notify():
+def get_habits_to_notify() -> QuerySet[Habit]:
     dt_now = timezone.now()
     one_hour_from_now = dt_now + timedelta(hours=1)
-    habits_to_notify = Habit.objects.filter(is_disabled=False, execution_time__range=(dt_now, one_hour_from_now)).order_by('execution_time')
+    habits_to_notify = Habit.objects.filter(
+        is_disabled=False, execution_time__range=(dt_now, one_hour_from_now)
+    ).order_by("execution_time")
     return habits_to_notify
 
 

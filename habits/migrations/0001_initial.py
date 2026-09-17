@@ -148,7 +148,8 @@ class Migration(migrations.Migration):
                             _connector="OR",
                         ),
                         name="pleasant_habit_or_related_habit_or_reward",
-                        violation_error_message="Pleasant habit can't have either relate_habit or reward. Useful habit can have either related habit or reward",
+                        violation_error_message="Pleasant habit can't have either relate_habit or reward. "
+                        "Useful habit can have either related habit or reward",
                     ),
                     models.CheckConstraint(
                         condition=models.Q(("duration__gte", 1), ("duration__lte", 120)),
