@@ -1,0 +1,912 @@
+openapi: 3.0.3
+info:
+  title: Habit tracker API
+  version: 1.0.0
+  description: API documentation for habit tracker.
+paths:
+  /api/habits/:
+    get:
+      operationId: habits_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - habits
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedHabitList'
+          description: ''
+  /api/habits/{id}/:
+    get:
+      operationId: habits_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - habits
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Habit'
+          description: ''
+  /api/habits/{id}/delete/:
+    delete:
+      operationId: habits_delete_destroy
+      description: Delete the specifies habit.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - habits
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: Habit successfully deleted.
+        '401':
+          description: Authentication credentials were not provided.
+        '403':
+          description: You do not have permission to perform this action.
+        '404':
+          description: No Habit matches the given query.
+  /api/habits/{id}/update/:
+    put:
+      operationId: habits_update_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - habits
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HabitRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/HabitRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/HabitRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Habit'
+          description: ''
+    patch:
+      operationId: habits_update_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - habits
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedHabitRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedHabitRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedHabitRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Habit'
+          description: ''
+  /api/habits/create/:
+    post:
+      operationId: habits_create_create
+      tags:
+      - habits
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HabitRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/HabitRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/HabitRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Habit'
+          description: ''
+  /api/habits/public/:
+    get:
+      operationId: habits_public_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - habits
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPublicHabitList'
+          description: ''
+  /api/users/:
+    get:
+      operationId: users_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUserList'
+          description: ''
+  /api/users/{id}/:
+    get:
+      operationId: users_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetrieveUser'
+          description: ''
+  /api/users/{id}/delete/:
+    delete:
+      operationId: users_delete_destroy
+      description: Delete the specifies user.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/users/{id}/update/:
+    put:
+      operationId: users_update_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserDetailRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserDetailRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserDetailRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetail'
+          description: ''
+    patch:
+      operationId: users_update_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserDetailRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserDetailRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserDetailRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetail'
+          description: ''
+  /api/users/login/:
+    post:
+      operationId: users_login_create
+      description: |-
+        Takes a set of user credentials and returns an access and refresh JSON web
+        token pair to prove the authentication of those credentials.
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPairRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPairRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPairRequest'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/users/register/:
+    post:
+      operationId: users_register_create
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserCreate'
+          description: ''
+  /api/users/token/refresh/:
+    post:
+      operationId: users_token_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+components:
+  schemas:
+    Habit:
+      type: object
+      description: Serializer for Habit model
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        action:
+          oneOf:
+          - type: integer
+          - type: object
+            properties:
+              name:
+                type: string
+        location:
+          oneOf:
+          - type: integer
+          - type: object
+            properties:
+              name:
+                type: string
+        duration:
+          type: integer
+          maximum: 120
+          minimum: 1
+          title: Время на выполнение (в секундах)
+        execution_time:
+          type: string
+          format: date-time
+          title: Следующее выполнение
+        period:
+          type: integer
+          maximum: 7
+          minimum: 1
+          title: Периодичность
+        related_habit:
+          type: integer
+          nullable: true
+          title: Связаная привычка
+        reward:
+          oneOf:
+          - type: integer
+          - type: object
+            properties:
+              name:
+                type: string
+          nullable: true
+        is_pleasant:
+          type: boolean
+          title: Признак приятной привычки
+        is_public:
+          type: boolean
+          title: Признак публичной привычки
+        is_disabled:
+          type: boolean
+          title: Отключена
+      required:
+      - action
+      - duration
+      - id
+      - location
+      - user
+    HabitRequest:
+      type: object
+      description: Serializer for Habit model
+      properties:
+        action:
+          oneOf:
+          - type: integer
+          - type: object
+            properties:
+              name:
+                type: string
+        location:
+          oneOf:
+          - type: integer
+          - type: object
+            properties:
+              name:
+                type: string
+        duration:
+          type: integer
+          maximum: 120
+          minimum: 1
+          title: Время на выполнение (в секундах)
+        execution_time:
+          type: string
+          format: date-time
+          title: Следующее выполнение
+        period:
+          type: integer
+          maximum: 7
+          minimum: 1
+          title: Периодичность
+        related_habit:
+          type: integer
+          nullable: true
+          title: Связаная привычка
+        reward:
+          oneOf:
+          - type: integer
+          - type: object
+            properties:
+              name:
+                type: string
+          nullable: true
+        is_pleasant:
+          type: boolean
+          title: Признак приятной привычки
+        is_public:
+          type: boolean
+          title: Признак публичной привычки
+        is_disabled:
+          type: boolean
+          title: Отключена
+      required:
+      - action
+      - duration
+      - location
+    PaginatedHabitList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Habit'
+    PaginatedPublicHabitList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicHabit'
+    PaginatedUserList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+    PatchedHabitRequest:
+      type: object
+      description: Serializer for Habit model
+      properties:
+        action:
+          oneOf:
+          - type: integer
+          - type: object
+            properties:
+              name:
+                type: string
+        location:
+          oneOf:
+          - type: integer
+          - type: object
+            properties:
+              name:
+                type: string
+        duration:
+          type: integer
+          maximum: 120
+          minimum: 1
+          title: Время на выполнение (в секундах)
+        execution_time:
+          type: string
+          format: date-time
+          title: Следующее выполнение
+        period:
+          type: integer
+          maximum: 7
+          minimum: 1
+          title: Периодичность
+        related_habit:
+          type: integer
+          nullable: true
+          title: Связаная привычка
+        reward:
+          oneOf:
+          - type: integer
+          - type: object
+            properties:
+              name:
+                type: string
+          nullable: true
+        is_pleasant:
+          type: boolean
+          title: Признак приятной привычки
+        is_public:
+          type: boolean
+          title: Признак публичной привычки
+        is_disabled:
+          type: boolean
+          title: Отключена
+    PatchedUserDetailRequest:
+      type: object
+      description: Serializer for User model
+      properties:
+        username:
+          type: string
+          minLength: 1
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          minLength: 1
+          title: Почта
+          description: Укажите почту
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        telegram_chat_id:
+          type: string
+          nullable: true
+          title: Chat_id пользователя телеграм
+          maxLength: 32
+    PublicHabit:
+      type: object
+      properties:
+        action:
+          type: string
+          readOnly: true
+        location:
+          type: string
+          readOnly: true
+        duration:
+          type: integer
+          maximum: 120
+          minimum: 1
+          title: Время на выполнение (в секундах)
+        execution_time:
+          type: string
+          format: date-time
+          title: Следующее выполнение
+        period:
+          type: integer
+          maximum: 7
+          minimum: 1
+          title: Периодичность
+        related_habit:
+          type: integer
+          nullable: true
+          title: Связаная привычка
+        reward:
+          type: string
+          readOnly: true
+        is_pleasant:
+          type: boolean
+          title: Признак приятной привычки
+      required:
+      - action
+      - duration
+      - location
+      - reward
+    RetrieveUser:
+      oneOf:
+      - $ref: '#/components/schemas/User'
+      - $ref: '#/components/schemas/UserDetail'
+      discriminator:
+        propertyName: user_type
+        mapping:
+          None: '#/components/schemas/UserDetail'
+    TokenObtainPairRequest:
+      type: object
+      description: Serializer for Token obtainment
+      properties:
+        username:
+          type: string
+          writeOnly: true
+          minLength: 1
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - password
+      - username
+    TokenRefresh:
+      type: object
+      description: Serializer for token refreshment
+      properties:
+        refresh:
+          type: string
+        access:
+          type: string
+          readOnly: true
+      required:
+      - access
+      - refresh
+    TokenRefreshRequest:
+      type: object
+      description: Serializer for token refreshment
+      properties:
+        refresh:
+          type: string
+          minLength: 1
+      required:
+      - refresh
+    User:
+      type: object
+      description: Serializer for User model
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Почта
+          description: Укажите почту
+          maxLength: 254
+        user_type:
+          type: string
+          readOnly: true
+          default: service_user
+      required:
+      - email
+      - id
+      - user_type
+      - username
+    UserCreate:
+      type: object
+      description: Serializer for User instance creation
+      properties:
+        username:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Почта
+          description: Укажите почту
+          maxLength: 254
+        password:
+          type: string
+          maxLength: 128
+      required:
+      - email
+      - password
+      - username
+    UserCreateRequest:
+      type: object
+      description: Serializer for User instance creation
+      properties:
+        username:
+          type: string
+          minLength: 1
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          minLength: 1
+          title: Почта
+          description: Укажите почту
+          maxLength: 254
+        password:
+          type: string
+          minLength: 1
+          maxLength: 128
+      required:
+      - email
+      - password
+      - username
+    UserDetail:
+      type: object
+      description: Serializer for User model
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Почта
+          description: Укажите почту
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        telegram_chat_id:
+          type: string
+          nullable: true
+          title: Chat_id пользователя телеграм
+          maxLength: 32
+        user_type:
+          type: string
+          readOnly: true
+          default: user_profile
+      required:
+      - email
+      - id
+      - user_type
+      - username
+    UserDetailRequest:
+      type: object
+      description: Serializer for User model
+      properties:
+        username:
+          type: string
+          minLength: 1
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          minLength: 1
+          title: Почта
+          description: Укажите почту
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        telegram_chat_id:
+          type: string
+          nullable: true
+          title: Chat_id пользователя телеграм
+          maxLength: 32
+      required:
+      - email
+      - username
+    UserRequest:
+      type: object
+      description: Serializer for User model
+      properties:
+        username:
+          type: string
+          minLength: 1
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          minLength: 1
+          title: Почта
+          description: Укажите почту
+          maxLength: 254
+      required:
+      - email
+      - username
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

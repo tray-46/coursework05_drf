@@ -1,6 +1,6 @@
 from typing import Any
 
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiResponse, PolymorphicProxySerializer
 from rest_framework.generics import CreateAPIView, DestroyAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
@@ -36,11 +36,14 @@ class UserListAPIView(ListAPIView):
     serializer_class = UserSerializer
 
 
-@extend_schema(
-    responses={
-        200: UserSerializer,
-    }
-)
+# @extend_schema(
+#     responses={
+#         200: PolymorphicProxySerializer(
+#             component_name="RetrieveUser",
+#             serializers=[UserSerializer, UserDetailSerializer,],
+#             resource_type_field_name="user_type"),
+#     }
+# )
 class UserRetrieveAPIView(RetrieveAPIView):
     queryset = User.objects.all()
 

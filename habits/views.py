@@ -1,3 +1,4 @@
+from drf_spectacular.utils import OpenApiResponse, extend_schema, inline_serializer
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView, DestroyAPIView
 from rest_framework.permissions import IsAuthenticated
 
@@ -46,7 +47,16 @@ class HabitUpdateAPIView(UpdateAPIView):
     serializer_class = HabitSerializer
     permission_classes = [IsAuthenticated, IsHabitOwner]
 
-
+@extend_schema(
+    description="Delete the specifies habit.",
+    request=None,
+    responses={
+        204: OpenApiResponse(description="Habit successfully deleted."),
+        401: OpenApiResponse(description="Authentication credentials were not provided."),
+        403: OpenApiResponse(description="You do not have permission to perform this action."),
+        404: OpenApiResponse(description="No Habit matches the given query."),
+    },
+)
 class HabitDestroyAPIView(DestroyAPIView):
     queryset = Habit.objects.all()
     permission_classes = [IsAuthenticated, IsHabitOwner]

@@ -1,11 +1,25 @@
+from typing import Union
+
 from django.db import transaction
 from django.utils import timezone
+from drf_spectacular.extensions import OpenApiSerializerFieldExtension, _SchemaType
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field, Direction
 from rest_framework import serializers
 
 from habits.models import Action, Location, Reward, Habit
 from users.serializers import UserSerializer
 
-
+@extend_schema_field({
+    "oneOf": [
+        { "type": "integer"} ,
+        { "type": "object",
+          "properties": {
+              "name": { "type": "string"},
+          }
+        }
+    ]
+})
 class FlexibleNestedField(serializers.RelatedField):
 
     def __init__(self, model, serializer_class, **kwargs):
@@ -29,6 +43,25 @@ class FlexibleNestedField(serializers.RelatedField):
             return serializer.save()
 
         raise serializers.ValidationError(f"Invalid input. Expected an id or dictionary.")
+
+
+# class FlexibleNestedFieldExtension(OpenApiSerializerFieldExtension):
+#     target_class = "habits.serializers.FlexibleNestedField"
+#
+#     def map_serializer_field(self, auto_schema: "AutoSchema", direction: Direction) -> _SchemaType:
+#         component = auto_schema.resolve_serializer(
+#             self.target.serializer_class(),
+#             direction
+#         )
+#
+#         pk_schema = {"type": "integer"}
+#
+#         return {
+#             "OneOf": [
+#                 pk_schema,
+#                 component.ref
+#             ]
+#         }
 
 
 class ActionSerializer(serializers.ModelSerializer):
@@ -85,12 +118,11 @@ class HabitSerializer(serializers.ModelSerializer):
     location = FlexibleNestedField(model=Location, serializer_class=LocationSerializer, queryset=Location.objects.all())
     reward = FlexibleNestedField(model=Reward, serializer_class=RewardSerializer, queryset=Reward.objects.all(),
                                  required=False, allow_null=True)
-    next_execution_at = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = Habit
         fields = ("id", "user", "action", "location", "duration", "execution_time", "period", "related_habit", "reward",
-                  "is_pleasant", "is_public", "is_disabled", "next_execution_at")
+                  "is_pleasant", "is_public", "is_disabled",)
         extra_kwargs = {
             "related_habit": {
                 "error_messages": {
