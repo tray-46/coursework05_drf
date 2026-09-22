@@ -62,3 +62,19 @@ plugins = ["mypy_django_plugin.main"]
 
 [tool.django-stubs]
 django_settings_module = "config.settings"
+
+[tool.coverage.run]
+omit = [
+    "*/migrations/*",
+    "*/management/commands/*",
+    "*/wsgi.py",
+    "*/asgi.py",
+    "*settings*.py",
+    "manage.py",
+    "*/apps.py",
+]
+
+[tool.coverage.report]
+exclude_also = [
+    'if __name__ == .__main__.:',
+]
