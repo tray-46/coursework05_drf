@@ -1,0 +1,93 @@
+services:
+  db:
+    image: postgres:18.0-alpine
+    container_name: habits-db
+    restart: always
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:8.10-alpine
+    container_name: habits-redis-broker
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    expose:
+      - "6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    image: ${APP_WEB_IMAGE}
+    container_name: habits-drf
+    restart: always
+    volumes:
+      - static_data:/app/static
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  celery_worker:
+    image: ${APP_WEB_IMAGE}
+    container_name: habits-celery-worker
+    restart: always
+    command: celery -A config worker --loglevel=INFO
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  celery_beat:
+    image: ${APP_WEB_IMAGE}
+    container_name: habits-celery-beat
+    restart: always
+    command: celery -A config beat --loglevel=INFO
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:alpine
+    container_name: habits-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - static_data:/app/static/:ro
+    restart: unless-stopped
+    depends_on:
+      - web
+
+  adminer:
+    image: adminer:6.1.0
+    container_name: habits-adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+volumes:
+  pg_data:
+  redis_data:
+  static_data:
