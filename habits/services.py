@@ -6,21 +6,34 @@
 # django.setup()
 import os
 
-# import requests
+import requests
 from datetime import timedelta
 
 from django.db.models import QuerySet
 from django.utils import timezone
 
+from config.settings import DEBUG
 from habits.models import Habit
 
 TG_BOT_API_KEY = os.environ.get("TG_BOT_API_KEY")
 
 
 def send_telegram_message(chat_id: str, message: str) -> None:
-    # params = {"chat_id": chat_id, "text": message}
-    # requests.get(f"https://api.telegram.org/bot{TG_BOT_API_KEY}/sendMessage", params=params)
-    print(f"telegram message to {chat_id}: {message}")
+    if DEBUG:
+        print(f"telegram message to {chat_id}: {message}")
+    else:
+        if not TG_BOT_API_KEY:
+            raise RuntimeError("TG_BOT_API_KEY not set")
+
+        params = {"chat_id": chat_id, "text": message}
+
+        response = requests.post(
+            f"https://api.telegram.org/bot{TG_BOT_API_KEY}/sendMessage",
+            params=params,
+            timeout=10
+        )
+
+        response.raise_for_status()
 
 
 def get_habits_to_notify() -> QuerySet[Habit]:
