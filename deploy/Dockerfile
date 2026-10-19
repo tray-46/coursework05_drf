@@ -28,4 +28,5 @@ COPY ../.. /app
 
 EXPOSE 8000
 
-ENTRYPOINT ["deploy/entrypoint.sh"]
+RUN chmod +x  ./deploy/entrypoint.sh
+ENTRYPOINT ["app/deploy/entrypoint.sh"]
