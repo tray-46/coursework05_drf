@@ -5,10 +5,9 @@
 # os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 # django.setup()
 import os
-
-import requests
 from datetime import timedelta
 
+import requests
 from django.db.models import QuerySet
 from django.utils import timezone
 
@@ -28,9 +27,7 @@ def send_telegram_message(chat_id: str, message: str) -> None:
         params = {"chat_id": chat_id, "text": message}
 
         response = requests.post(
-            f"https://api.telegram.org/bot{TG_BOT_API_KEY}/sendMessage",
-            params=params,
-            timeout=10
+            f"https://api.telegram.org/bot{TG_BOT_API_KEY}/sendMessage", params=params, timeout=10
         )
 
         response.raise_for_status()

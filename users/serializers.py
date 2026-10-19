@@ -30,7 +30,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("id", "username", "email", "first_name", "last_name", "telegram_username")
+        fields = ("id", "username", "email", "first_name", "last_name", "telegram_chat_id")
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
