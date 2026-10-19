@@ -131,6 +131,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           push: true
+          file: ./deploy/Dockerfile
           tags: ${{ secrets.DOCKER_HUB_USER }}/habits:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
