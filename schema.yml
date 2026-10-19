@@ -8,10 +8,16 @@ paths:
     get:
       operationId: habits_list
       parameters:
-      - name: page
+      - name: limit
         required: false
         in: query
-        description: A page number within the paginated result set.
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
         schema:
           type: integer
       tags:
@@ -160,10 +166,16 @@ paths:
     get:
       operationId: habits_public_list
       parameters:
-      - name: page
+      - name: limit
         required: false
         in: query
-        description: A page number within the paginated result set.
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
         schema:
           type: integer
       tags:
@@ -181,10 +193,16 @@ paths:
     get:
       operationId: users_list
       parameters:
-      - name: page
+      - name: limit
         required: false
         in: query
-        description: A page number within the paginated result set.
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
         schema:
           type: integer
       tags:
@@ -516,12 +534,12 @@ components:
           type: string
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=4
+          example: http://api.example.org/accounts/?offset=400&limit=100
         previous:
           type: string
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=2
+          example: http://api.example.org/accounts/?offset=200&limit=100
         results:
           type: array
           items:
@@ -539,12 +557,12 @@ components:
           type: string
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=4
+          example: http://api.example.org/accounts/?offset=400&limit=100
         previous:
           type: string
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=2
+          example: http://api.example.org/accounts/?offset=200&limit=100
         results:
           type: array
           items:
@@ -562,12 +580,12 @@ components:
           type: string
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=4
+          example: http://api.example.org/accounts/?offset=400&limit=100
         previous:
           type: string
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=2
+          example: http://api.example.org/accounts/?offset=200&limit=100
         results:
           type: array
           items:
@@ -699,7 +717,8 @@ components:
       discriminator:
         propertyName: user_type
         mapping:
-          None: '#/components/schemas/UserDetail'
+          User: '#/components/schemas/User'
+          UserDetail: '#/components/schemas/UserDetail'
     TokenObtainPairRequest:
       type: object
       description: Serializer for Token obtainment
@@ -755,14 +774,9 @@ components:
           title: Почта
           description: Укажите почту
           maxLength: 254
-        user_type:
-          type: string
-          readOnly: true
-          default: service_user
       required:
       - email
       - id
-      - user_type
       - username
     UserCreate:
       type: object
@@ -843,14 +857,9 @@ components:
           nullable: true
           title: Chat_id пользователя телеграм
           maxLength: 32
-        user_type:
-          type: string
-          readOnly: true
-          default: user_profile
       required:
       - email
       - id
-      - user_type
       - username
     UserDetailRequest:
       type: object
